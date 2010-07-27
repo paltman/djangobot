@@ -170,6 +170,9 @@ class Message(object):
         # find changesets. requires r1000 syntax.
         changesets = re.findall(r"\br(\d+)\b", self.message)
         self.cmd_changeset(*changesets, **dict(in_channel=True))
+        # find geektimes.  requires 0x(\d+) syntax
+        geektimes = re.findall(r"\s+0x(\d{1,4})\s*", self.message)
+        self.cmd_geektime(*geektimes, **dict(in_channel=True))
 
     def check_url(self, url):
         try:
@@ -228,6 +231,19 @@ class Message(object):
     cmd_changeset.usage = "<changeset> [<changeset> ...]"
     cmd_changeset.help_text = "Sends back Trac links to the given" + \
                               " changeset(s)."
+
+    def cmd_geektime(self, *geektimes, **kwargs):
+        in_channel = kwargs.get("in_channel", False)
+        for geektime in geektimes:
+            url = "http://geektime.org/%s" % geektime
+            # @@@ once API is deployed, can urllib/read and display the time in UTC
+            if self.check_url(url):
+                if in_channel:
+                    self.channel.msg(url)
+                else:
+                    self.user.msg(url)
+    cmd_geektime.usage = "<geektime> [<geektime> ...]"
+    cmd_geektime.help_text = "Sends back GeekTime links to the given Hex code."
 
     def cmd_who(self, *nicknames):
         for nickname in [n.strip() for n in nicknames]:
